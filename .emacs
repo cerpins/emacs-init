@@ -18,28 +18,23 @@
  ;; If there is more than one, they won't work right.
  )
 
-;; Guarantee initialized packages
+;; Init melpa and package
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
-;; Globals for on-install pkg behavior
-(defvar cerps-irony-already-installed (package-installed-p 'irony))
+;; !!
+;; REMEMBER TO INSTALL IRONY SERVER
+;; !!
 
-;; Guarantee melpa & use-package
+;; Guarantee use-package
 (progn
-  (unless (package-installed-p 'package)
-    (progn
-      (package-install 'package)
-      (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)))
-      (package-refresh-contents)
-      (package-list-packages)
   (unless (package-installed-p 'use-package)
     (progn
       (package-initialize)
       (package-refresh-contents)
       (package-list-packages)
-      (package-install 'use-package))))
-
-(progn
+      (package-install 'use-package)))
   (use-package sr-speedbar
     :ensure t
     :config
@@ -57,8 +52,6 @@
     (add-hook 'c-mode-hook 'irony-mode)
     (add-hook 'objc-mode-hook 'irony-mode)
     (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-    (unless (cerps-irony-already-installed)
-      (error "Fresh install detected, do: M-x RET īrony-install-server RET"))
     (use-package company
       :ensure t
       :config
