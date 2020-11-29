@@ -7,9 +7,9 @@
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
    ["#2d3743" "#ff4242" "#74af68" "#dbdb95" "#34cae2" "#008b8b" "#00ede1" "#e1e1e0"])
- '(custom-enabled-themes '(deeper-blue))
+ '(custom-enabled-themes '(tsdh-light))
  '(package-selected-packages
-   '(package fill-column-indicator clang-format sr-speedbar req-package irony-eldoc flycheck-irony flycheck-clang-tidy flycheck-clang-analyzer eglot company-irony company-flx company-c-headers cmake-mode cmake-ide))
+   '(slime-company slime package fill-column-indicator clang-format sr-speedbar req-package irony-eldoc flycheck-irony flycheck-clang-tidy flycheck-clang-analyzer eglot company-irony company-flx company-c-headers cmake-mode cmake-ide))
  '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -28,59 +28,76 @@
 ;; !!
 
 ;; Guarantee use-package
-(progn
-  (unless (package-installed-p 'use-package)
-    (progn
-      (package-initialize)
-      (package-refresh-contents)
-      (package-list-packages)
-      (package-install 'use-package)))
-  (use-package sr-speedbar
-    :ensure t
-    :config
-    (add-hook 'emacs-startup-hook
-	  (lambda ()
-	    (setq sr-speedbar-default-width 15)
-	    (setq sr-speedbar-width 15)
-	    (setq sr-speedbar-right-side nil)
-	    (sr-speedbar-refresh-turn-off)
-	    (sr-speedbar-open))))
-  (use-package irony
-    :ensure t
-    :config
-    (add-hook 'c++-mode-hook 'irony-mode)
-    (add-hook 'c-mode-hook 'irony-mode)
-    (add-hook 'objc-mode-hook 'irony-mode)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-    (use-package company
-      :ensure t
-      :config
-      (setq company-idle-delay 0)
-      (setq company-minimum-prefix-length 1)
-      (setq company-tooltip-idle-delay 0)
-      (use-package company-irony
-	:ensure t
-	:config
-	(add-to-list 'company-backends 'company-irony)))
-    (use-package flycheck
-      :ensure t
-      :config
-      (add-hook 'after-init-hook 'global-flycheck-mode)
-      (use-package flycheck-irony
-	:ensure t
-	:config
-	(add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
-    (use-package eldoc
-      :ensure t
-      :config
-      (setq eldoc-idle-delay 0)
-      (use-package irony-eldoc
-	:ensure t
-	:config
-	(add-hook 'irony-mode-hook #'irony-eldoc)))))
+
+(unless (package-installed-p 'use-package)
+  (progn
+    (package-initialize)
+    (package-refresh-contents)
+    (package-list-packages)
+    (package-install 'use-package)))
+
+(use-package slime
+  :ensure t
+  :config
+  (setq inferior-lisp-program "sbcl"))
+
+(use-package sr-speedbar
+  :ensure t
+  :config
+  (add-hook 'after-init-hook
+	    (lambda ()
+	      (setq speedbar-show-unknown-files t)
+	      (setq sr-speedbar-default-width 15)
+	      (setq sr-speedbar-width 15)
+	      (setq sr-speedbar-right-side nil)
+	      (sr-speedbar-refresh-turn-off)
+	      (sr-speedbar-open))))
+
+(use-package company
+  :ensure t
+  :config
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 1)
+  (setq company-tooltip-idle-delay 0)
+  (add-hook 'after-init-hook 'global-company-mode))
+
+(use-package flycheck
+  :ensure t
+  :config
+  (add-hook 'after-init-hook 'global-flycheck-mode))
+
+(use-package eldoc
+  :ensure t
+  :config
+  (setq eldoc-idle-delay 0))
+
+(use-package irony
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+(use-package company-irony
+  :after (company irony)
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-irony))
+
+(use-package flycheck-irony
+  :after (flycheck irony)
+  :ensure t
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+
+(use-package irony-eldoc
+  :after (eldoc irony)
+  :ensure t
+  :config
+  (add-hook 'irony-mode-hook #'irony-eldoc))
 
 ;; END: PACKAGES
-
 
 ;; Startup
 ;; Start sr-speedbar
@@ -95,8 +112,11 @@
     (toggle-truncate-lines 1)
     )
  )
+
 ;; Font
 (set-frame-font "Hack 10" nil t)
+;;Disable vertical scroll
+(toggle-scroll-bar -1)
 
 ;; Keys
 ;; Remove z suspends
@@ -123,8 +143,16 @@
                     (add-hook 'before-save-hook
                               'clang-format-buffer))))
 
+;; Display line numbers
+(setq display-line-numbers t)
+(setq display-line-numbers-current-absolute t)
+(setq display-line-numbers-width 3)
+(add-hook 'after-init-hook 'global-display-line-numbers-mode)
+(add-hook 'speedbar-mode-hook (lambda () (display-line-numbers-mode -1)))
+
 ;; Column indicator globally
 (setq display-fill-column-indicator-column 80)
 (setq display-fill-column-indicator t)
-(add-hook 'c-mode-common-hook 'display-fill-column-indicator-mode)
+(add-hook 'after-init-hook 'global-display-fill-column-indicator-mode)
 
+;;;
