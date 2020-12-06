@@ -1,3 +1,6 @@
+;;; package --- Summary
+;;; Commentary:
+;;; Code:
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -7,7 +10,9 @@
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
    ["#2d3743" "#ff4242" "#74af68" "#dbdb95" "#34cae2" "#008b8b" "#00ede1" "#e1e1e0"])
- '(custom-enabled-themes '(tsdh-light))
+ '(custom-enabled-themes '(wombat))
+ '(flycheck-clang-include-path '("/home/user/Misc/emscripten/system/include"))
+ '(flycheck-cppcheck-include-path '("/home/user/Misc/emscripten/system/include"))
  '(package-selected-packages
    '(slime-company slime package fill-column-indicator clang-format sr-speedbar req-package irony-eldoc flycheck-irony flycheck-clang-tidy flycheck-clang-analyzer eglot company-irony company-flx company-c-headers cmake-mode cmake-ide))
  '(tool-bar-mode nil))
@@ -44,8 +49,10 @@
 (use-package sr-speedbar
   :ensure t
   :config
+  (add-hook 'speedbar-mode-hook (lambda () (display-line-numbers-mode -1)))
   (add-hook 'after-init-hook
 	    (lambda ()
+	      (setq sr-speedbar-skip-other-window-p t)
 	      (setq speedbar-show-unknown-files t)
 	      (setq sr-speedbar-default-width 15)
 	      (setq sr-speedbar-width 15)
@@ -59,7 +66,8 @@
   (setq company-idle-delay 0)
   (setq company-minimum-prefix-length 1)
   (setq company-tooltip-idle-delay 0)
-  (add-hook 'after-init-hook 'global-company-mode))
+  (add-hook 'after-init-hook 'global-company-mode)
+  (add-hook 'eshell-mode-hook (lambda() (company-mode -1))))
 
 (use-package flycheck
   :ensure t
@@ -107,11 +115,13 @@
 (setq tool-bar-mode nil)
 ;; Trunate lines for CC
 (add-hook
- 'c-mode-common-hook
+ 'after-init-hook
  '(lambda ()
-    (toggle-truncate-lines 1)
-    )
- )
+    (toggle-truncate-lines 1)))
+(add-hook
+ 'eshell-mode-hook
+ '(lambda ()
+    (toggle-truncate-lines -1)))
 
 ;; Font
 (set-frame-font "Hack 10" nil t)
@@ -134,25 +144,27 @@
 (desktop-save-mode 1)
 (setq desktop-path (list "~/.saves/"))
 ;; Save backups to external folder
-(setq auto-save-file-name-transforms
-  `((".*" "~/.saves/" t)))
+(setq backup-directory-alist `(("." . "~/.saves/")))
+(setq backup-by-copying t)
 
 ;; Clang format on save
 (add-hook 'c-mode-common-hook
           (function (lambda ()
-                    (add-hook 'before-save-hook
-                              'clang-format-buffer))))
+                      (add-hook 'before-save-hook
+				'clang-format-buffer))))
 
 ;; Display line numbers
 (setq display-line-numbers t)
 (setq display-line-numbers-current-absolute t)
 (setq display-line-numbers-width 3)
 (add-hook 'after-init-hook 'global-display-line-numbers-mode)
-(add-hook 'speedbar-mode-hook (lambda () (display-line-numbers-mode -1)))
 
 ;; Column indicator globally
 (setq display-fill-column-indicator-column 80)
 (setq display-fill-column-indicator t)
 (add-hook 'after-init-hook 'global-display-fill-column-indicator-mode)
+
+;; Automatically into Projects folder
+(cd "~/Projects/")
 
 ;;;
